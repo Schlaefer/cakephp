@@ -21,6 +21,7 @@ use Cake\Core\InstanceConfigTrait;
 use Cake\Error\ErrorHandler;
 use Cake\Error\ExceptionRenderer;
 use Cake\Http\Response;
+use Cake\TestSuite\Stub\TestExceptionRenderer;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -137,6 +138,11 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
             $errorHandler->logException($exception, $request);
         } catch (Throwable $internalException) {
             $errorHandler->logException($internalException, $request);
+
+            if ($errorHandler->getConfig('exceptionRenderer') === TestExceptionRenderer::class) {
+                throw $exception;
+            }
+
             $response = $this->handleInternalError();
         }
 
