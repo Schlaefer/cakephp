@@ -571,6 +571,10 @@ trait IntegrationTestTrait
      */
     protected function _handleError(Throwable $exception): void
     {
+        if (!Configure::read('Error.enabled')) {
+            throw $exception;
+        }
+
         $class = Configure::read('Error.exceptionRenderer');
         if (empty($class) || !class_exists($class)) {
             $class = ExceptionRenderer::class;
@@ -1211,7 +1215,7 @@ trait IntegrationTestTrait
      */
     public function disableErrorHandlerMiddleware(): void
     {
-        Configure::write('Error.exceptionRenderer', TestExceptionRenderer::class);
+        Configure::write('Error.enabled', false);
     }
 
     /**

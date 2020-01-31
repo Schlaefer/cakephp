@@ -59,6 +59,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
      * @var array
      */
     protected $_defaultConfig = [
+        'enabled' => true,
         'skipLog' => [],
         'log' => true,
         'trace' => false,
@@ -117,6 +118,9 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (Throwable $exception) {
+            if (!$this->getConfig('enabled')) {
+                throw $exception;
+            }
             return $this->handleException($exception, $request);
         }
     }
