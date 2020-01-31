@@ -59,7 +59,7 @@ class DateTimeWidget extends BasicWidget
      * @var string[]
      */
     protected $formatMap = [
-        'datetime-local' => 'Y-m-d\TH:i:s.v',
+        'datetime-local' => 'Y-m-d\TH:i:s',
         'date' => 'Y-m-d',
         'time' => 'H:i:s',
         'month' => 'Y-m',
@@ -117,7 +117,7 @@ class DateTimeWidget extends BasicWidget
             }
         }
 
-        $data['value'] = $this->formatDateTime($data['val'], $data);
+        $data['value'] = $this->formatDateTime($data['val'], $data, $context, $data['fieldName'] ?? null);
         unset($data['val'], $data['timezone']);
 
         return $this->_templates->format('input', [
@@ -160,10 +160,12 @@ class DateTimeWidget extends BasicWidget
      *
      * @param string|int|\DateTime|null $value Value to deconstruct.
      * @param array $options Options for conversion.
+     * @param \Cake\View\Form\ContextInterface $context Context instance.
+     * @param string|null $fieldName Field name or null if not set.
      * @return string
      * @throws \InvalidArgumentException If invalid input type is passed.
      */
-    protected function formatDateTime($value, array $options): string
+    protected function formatDateTime($value, array $options, ContextInterface $context, ?string $fieldName): string
     {
         if ($value === '' || $value === null) {
             return '';
@@ -192,7 +194,21 @@ class DateTimeWidget extends BasicWidget
             $dateTime = $dateTime->setTimezone($timezone);
         }
 
-        return $dateTime->format($this->formatMap[$options['type']]);
+        $format = $this->formatMap[$options['type']];
+        if ($fieldName !== null) {
+            $fractionalTypes = [
+                TableSchema::TYPE_DATETIME_FRACTIONAL,
+                TableSchema::TYPE_TIMESTAMP_FRACTIONAL,
+                TableSchema::TYPE_TIMESTAMP_TIMEZONE,
+            ];
+
+            $dbType = $context->type($fieldName);
+            if (in_array($dbType, $fractionalTypes, true)) {
+                $format = 'Y-m-d\TH:i:s.v';
+            }
+        }
+
+        return $dateTime->format($format);
     }
 
     /**
